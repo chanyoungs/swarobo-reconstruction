@@ -2,19 +2,26 @@
 
 :: path to RealityCapture and PostShot directories
 set RealityCaptureExe="C:\Program Files\Capturing Reality\RealityCapture\RealityCapture.exe"
-set PostShotEXE="C:\Program Files\Jawset Postshot\bin\postshot-cli.exe"
 
 :: root path of project (%~dp0 means the flder in which this script is stored)
 set RootFolder=%~dp0
 
+set ProjectFolder=%~1
+
 :: set path to the folder with your images
-set Images="%RootFolder%images"
+set Images="%ProjectFolder%\images"
 
 :: set the path to RealityCapture settings
-set SettingsFolder="X:\FILES\RC\RC_CLI\Settings"
+set SettingsFolder="%RootFolder%\settings"
 
 :: set the path, where project is going to be saved, and its name
-set Project="%RootFolder%\RC.rcproj"
+set Project="%ProjectFolder%\RC.rcproj"
+
+:: set project name as data_folderName
+for %%F in (%ProjectFolder%) do set ProjectName=data_%%~nxF
+
+:: make export dirs
+mkdir %ProjectFolder%\%ProjectName%\images
 
 :: run RealityCapture
 %RealityCaptureExe% -newScene ^
@@ -23,7 +30,7 @@ set Project="%RootFolder%\RC.rcproj"
         -save %Project% ^
         -align ^
         -selectMaximalComponent ^
-        -exportRegistration %Images%\registeration.csv "%SettingsFolder%\3DGS_reg.xml" ^
-	-exportSparsePointCloud %Images%\pointcloud.ply "%SettingsFolder%\3DGS_ply.xml" ^
+        -exportRegistration %ProjectFolder%\%ProjectName%\images\transforms.json "%SettingsFolder%\export_reg_settings.xml" ^
+	-exportSparsePointCloud %ProjectFolder%\%ProjectName%\sparse_pc.ply "%SettingsFolder%\export_ply_settings.xml" ^
 	-save ^
-	-quit 
+	:: -quit 

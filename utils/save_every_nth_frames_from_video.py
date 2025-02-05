@@ -8,7 +8,18 @@ import keyboard
 
 def save_frames_from_videos(videos_folder_path, frame_interval, multithread=True):
     video_paths = list(glob(os.path.join(videos_folder_path, "*.mp4")))
-    pool_args = [(video, args.frame_interval, args.output_dir) for video in video_paths]
+
+    pool_args = [
+        (
+            video,
+            frame_interval,
+            os.path.join(
+                videos_folder_path,
+                "images",
+                os.path.basename(video).split(".")[0]
+            )
+        ) for video in video_paths
+    ]
 
     if multithread:
         with Pool() as pool:
@@ -23,11 +34,10 @@ def save_frames_from_videos(videos_folder_path, frame_interval, multithread=True
 
             pool.close()
             pool.join()
-            pool.starmap(save_frames_from_video, pool_args)
     else:
-        for n, video_path in enumerate(video_paths):
+        for n, (video_path, frame_interval, output_dir) in enumerate(video_paths):
             print(f"Processing video[{n+1}/{len(video_paths)}]: {video_path}")
-            save_frames_from_video(video_path, frame_interval)
+            save_frames_from_video(video_path, frame_interval, output_dir)
 
 def save_frames_from_video(video_path, frame_interval, output_dir=None):
     """

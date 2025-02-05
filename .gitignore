@@ -3,3 +3,5 @@
 /exports
 ~*
 hloc/Hierarchical-Localization
+*.pyc
+*.dat
