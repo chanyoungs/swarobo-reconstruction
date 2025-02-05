@@ -1,7 +1,5 @@
-screen -S train
-screen -dr train
-
 OUTPUT_DIR=/home/chan/outputs
+source ~/miniconda3/etc/profile.d/conda.sh
 conda activate nerfstudio
 
 ns-train splatfacto-mcmc \

@@ -32,5 +32,5 @@ mkdir %ProjectFolder%\%ProjectName%\images
         -selectMaximalComponent ^
         -exportRegistration %ProjectFolder%\%ProjectName%\images\transforms.json "%SettingsFolder%\export_reg_settings.xml" ^
 	-exportSparsePointCloud %ProjectFolder%\%ProjectName%\sparse_pc.ply "%SettingsFolder%\export_ply_settings.xml" ^
-	-save ^
-	:: -quit 
+	-save %Project% ^
+	-quit 
