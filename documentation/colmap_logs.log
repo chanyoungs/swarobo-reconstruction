@@ -1,0 +1,102 @@
+(nerfstudio) (base) chanyoungs@OMEN:~/Documents/SWAROBO/swarobo$ make process
+ns-process-data images --data ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train --output-dir ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-colmap
+[22:11:17] 🎉 Done copying images with prefix 'frame_'.                                        process_data_utils.py:340
+[22:11:46] 🎉 Done extracting COLMAP features.                                                       colmap_utils.py:137
+[22:16:15] 🎉 Done matching COLMAP features.                                                         colmap_utils.py:151
+[22:30:43] 🎉 Done COLMAP bundle adjustment.                                                         colmap_utils.py:173
+[22:32:36] 🎉 Done refining intrinsics.                                                              colmap_utils.py:184
+[22:32:40] 🎉 🎉 🎉 All DONE 🎉 🎉 🎉                                                images_to_nerfstudio_dataset.py:132
+           Starting with 500 images                                                  images_to_nerfstudio_dataset.py:135
+           Colmap matched 500 images                                                 images_to_nerfstudio_dataset.py:135
+           COLMAP found poses for all images, CONGRATS!                              images_to_nerfstudio_dataset.py:135
+(nerfstudio) (base) chanyoungs@OMEN:~/Documents/SWAROBO/swarobo$ make process
+ns-process-data images --data ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-200 --output-dir ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-200-colmap
+[22:40:35] 🎉 Done copying images with prefix 'frame_'.                                        process_data_utils.py:340
+[22:40:47] 🎉 Done extracting COLMAP features.                                                       colmap_utils.py:137
+[22:42:17] 🎉 Done matching COLMAP features.                                                         colmap_utils.py:151
+[22:45:38] 🎉 Done COLMAP bundle adjustment.                                                         colmap_utils.py:173
+[22:45:52] 🎉 Done refining intrinsics.                                                              colmap_utils.py:184
+[22:45:53] 🎉 🎉 🎉 All DONE 🎉 🎉 🎉                                                images_to_nerfstudio_dataset.py:132
+           Starting with 200 images                                                  images_to_nerfstudio_dataset.py:135
+           Colmap matched 200 images                                                 images_to_nerfstudio_dataset.py:135
+           COLMAP found poses for all images, CONGRATS!                              images_to_nerfstudio_dataset.py:135
+(nerfstudio) (base) chanyoungs@OMEN:~/Documents/SWAROBO/swarobo$ make process
+ns-process-data images --data ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-100 --output-dir ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-100-colmap
+[22:46:45] 🎉 Done copying images with prefix 'frame_'.                                        process_data_utils.py:340
+[22:46:51] 🎉 Done extracting COLMAP features.                                                       colmap_utils.py:137
+[22:47:32] 🎉 Done matching COLMAP features.                                                         colmap_utils.py:151
+[22:48:49] 🎉 Done COLMAP bundle adjustment.                                                         colmap_utils.py:173
+[22:48:55] 🎉 Done refining intrinsics.                                                              colmap_utils.py:184
+[22:48:56] 🎉 🎉 🎉 All DONE 🎉 🎉 🎉                                                images_to_nerfstudio_dataset.py:132
+           Starting with 100 images                                                  images_to_nerfstudio_dataset.py:135
+           Colmap matched 100 images                                                 images_to_nerfstudio_dataset.py:135
+           COLMAP found poses for all images, CONGRATS!                              images_to_nerfstudio_dataset.py:135
+(nerfstudio) (base) chanyoungs@OMEN:~/Documents/SWAROBO/swarobo$ make process
+ns-process-data images --data ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-50 --output-dir ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-50-colmap
+[22:49:43] 🎉 Done copying images with prefix 'frame_'.                                        process_data_utils.py:340
+[22:49:47] 🎉 Done extracting COLMAP features.                                                       colmap_utils.py:137
+[22:50:05] 🎉 Done matching COLMAP features.                                                         colmap_utils.py:151
+[22:50:38] 🎉 Done COLMAP bundle adjustment.                                                         colmap_utils.py:173
+[22:50:40] 🎉 Done refining intrinsics.                                                              colmap_utils.py:184
+           🎉 🎉 🎉 All DONE 🎉 🎉 🎉                                                images_to_nerfstudio_dataset.py:132
+           Starting with 50 images                                                   images_to_nerfstudio_dataset.py:135
+           Colmap matched 43 images                                                  images_to_nerfstudio_dataset.py:135
+           COLMAP found poses for 86.00% of the images.                              images_to_nerfstudio_dataset.py:135
+(nerfstudio) (base) chanyoungs@OMEN:~/Documents/SWAROBO/swarobo$ make process
+ns-process-data images --data ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-25 --output-dir ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-25-colmap
+[22:51:13] 🎉 Done copying images with prefix 'frame_'.                                        process_data_utils.py:340
+[22:51:15] 🎉 Done extracting COLMAP features.                                                       colmap_utils.py:137
+[22:51:25] 🎉 Done matching COLMAP features.                                                         colmap_utils.py:151
+[22:51:41] 🎉 Done COLMAP bundle adjustment.                                                         colmap_utils.py:173
+[22:51:42] 🎉 Done refining intrinsics.                                                              colmap_utils.py:184
+           🎉 🎉 🎉 All DONE 🎉 🎉 🎉                                                images_to_nerfstudio_dataset.py:132
+           Starting with 25 images                                                   images_to_nerfstudio_dataset.py:135
+           Colmap matched 23 images                                                  images_to_nerfstudio_dataset.py:135
+           COLMAP found poses for 92.00% of the images.                              images_to_nerfstudio_dataset.py:135
+(nerfstudio) (base) chanyoungs@OMEN:~/Documents/SWAROBO/swarobo$ make process 
+ns-process-data images --data ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-10 --output-dir ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-10-colmap
+[22:52:12] 🎉 Done copying images with prefix 'frame_'.                                        process_data_utils.py:340
+[22:52:14] 🎉 Done extracting COLMAP features.                                                       colmap_utils.py:137
+[22:52:23] 🎉 Done matching COLMAP features.                                                         colmap_utils.py:151
+[22:52:40] 🎉 Done COLMAP bundle adjustment.                                                         colmap_utils.py:173
+           🎉 Done refining intrinsics.                                                              colmap_utils.py:184
+[22:52:41] 🎉 🎉 🎉 All DONE 🎉 🎉 🎉                                                images_to_nerfstudio_dataset.py:132
+           Starting with 25 images                                                   images_to_nerfstudio_dataset.py:135
+           Colmap matched 22 images                                                  images_to_nerfstudio_dataset.py:135
+           COLMAP found poses for 88.00% of the images.                              images_to_nerfstudio_dataset.py:135
+(nerfstudio) (base) chanyoungs@OMEN:~/Documents/SWAROBO/swarobo$ make process 
+ns-process-data images --data ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-10 --output-dir ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-10-colmap
+[22:53:07] 🎉 Done copying images with prefix 'frame_'.                                        process_data_utils.py:340
+[22:53:08] 🎉 Done extracting COLMAP features.                                                       colmap_utils.py:137
+[22:53:12] 🎉 Done matching COLMAP features.                                                         colmap_utils.py:151
+[22:53:18] 🎉 Done COLMAP bundle adjustment.                                                         colmap_utils.py:173
+           🎉 Done refining intrinsics.                                                              colmap_utils.py:184
+           🎉 🎉 🎉 All DONE 🎉 🎉 🎉                                                images_to_nerfstudio_dataset.py:132
+           Starting with 10 images                                                   images_to_nerfstudio_dataset.py:135
+           Colmap matched 9 images                                                   images_to_nerfstudio_dataset.py:135
+           COLMAP found poses for 90.00% of the images.                              images_to_nerfstudio_dataset.py:135
+(nerfstudio) (base) chanyoungs@OMEN:~/Documents/SWAROBO/swarobo$ make process 
+ns-process-data images --data ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-5 --output-dir ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-5-colmap
+[22:54:03] 🎉 Done copying images with prefix 'frame_'.                                        process_data_utils.py:340
+[22:54:04] 🎉 Done extracting COLMAP features.                                                       colmap_utils.py:137
+[22:54:08] 🎉 Done matching COLMAP features.                                                         colmap_utils.py:151
+[22:54:13] 🎉 Done COLMAP bundle adjustment.                                                         colmap_utils.py:173
+           🎉 Done refining intrinsics.                                                              colmap_utils.py:184
+           🎉 🎉 🎉 All DONE 🎉 🎉 🎉                                                images_to_nerfstudio_dataset.py:132
+           Starting with 10 images                                                   images_to_nerfstudio_dataset.py:135
+           Colmap matched 9 images                                                   images_to_nerfstudio_dataset.py:135
+           COLMAP found poses for 90.00% of the images.                              images_to_nerfstudio_dataset.py:135
+(nerfstudio) (base) chanyoungs@OMEN:~/Documents/SWAROBO/swarobo$ make process 
+ns-process-data images --data ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-5 --output-dir ~/Documents/SWAROBO/blender/data/images/van-EEVEE/train-5-colmap
+[22:54:28] 🎉 Done copying images with prefix 'frame_'.                                        process_data_utils.py:340
+[22:54:29] 🎉 Done extracting COLMAP features.                                                       colmap_utils.py:137
+[22:54:31] 🎉 Done matching COLMAP features.                                                         colmap_utils.py:151
+[22:54:32] 🎉 Done COLMAP bundle adjustment.                                                         colmap_utils.py:173
+           🎉 Done refining intrinsics.                                                              colmap_utils.py:184
+           🎉 🎉 🎉 All DONE 🎉 🎉 🎉                                                images_to_nerfstudio_dataset.py:132
+           Starting with 5 images                                                    images_to_nerfstudio_dataset.py:135
+           Colmap matched 3 images                                                   images_to_nerfstudio_dataset.py:135
+           COLMAP only found poses for 60.00% of the images.                         images_to_nerfstudio_dataset.py:135
+           This isn't great, but may be ok.                                                                             
+           Missing poses can be caused by a variety of reasons, such poor scene                                         
+           coverage, blurry images, or large exposure changes.
