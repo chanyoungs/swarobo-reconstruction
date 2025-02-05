@@ -1,16 +1,47 @@
 import cv2
 import os
 from tqdm import tqdm
+from glob import glob
+from multiprocessing import Pool
+import argparse
+import keyboard
 
-def save_frames_from_video(video_path, output_dir, frame_interval):
+def save_frames_from_videos(videos_folder_path, frame_interval, multithread=True):
+    video_paths = list(glob(os.path.join(videos_folder_path, "*.mp4")))
+    pool_args = [(video, args.frame_interval, args.output_dir) for video in video_paths]
+
+    if multithread:
+        with Pool() as pool:
+            pool_result = pool.starmap_async(save_frames_from_video, pool_args)
+
+            print("Press 'q' to stop the process.")
+            while not pool_result.ready():
+                if keyboard.is_pressed("q"):
+                    pool.terminate()
+                    print("Process terminated by user.")
+                    break
+
+            pool.close()
+            pool.join()
+            pool.starmap(save_frames_from_video, pool_args)
+    else:
+        for n, video_path in enumerate(video_paths):
+            print(f"Processing video[{n+1}/{len(video_paths)}]: {video_path}")
+            save_frames_from_video(video_path, frame_interval)
+
+def save_frames_from_video(video_path, frame_interval, output_dir=None):
     """
     Extract frames from an MP4 video and save them as JPG images.
 
     :param video_path: Path to the input video file.
     :param output_dir: Directory where the frames will be saved.
-    :param frame_interval: Save a frame every 'frame_interval' frames.
+    :param frame_interval: Save a frame every "frame_interval" frames.
     """
-    # Create the output directory if it doesn't exist
+    # Create the output directory if it doesn"t exist
+
+    if output_dir is None:
+        output_dir = ".".join(video_path.split(".")[:-1])
+
     os.makedirs(output_dir, exist_ok=True)
 
     # Open the video file
@@ -48,8 +79,25 @@ def save_frames_from_video(video_path, output_dir, frame_interval):
 
 # Example usage
 if __name__ == "__main__":
-    video_path = "/media/chanyoungs/DATA1/SWAROBO-Data/241220-인천드론시험비행장-수동촬영테스트/REC_0002.mp4"  # Path to your MP4 video file
-    output_dir = "/media/chanyoungs/DATA1/SWAROBO-Data/241220-인천드론시험비행장-수동촬영테스트/REC_0002"  # Directory to save the extracted frames
-    frame_interval = 30  # Save a frame every 30 frames (1 frame per second for 30 FPS video)
+    parser = argparse.ArgumentParser(description="Save every nth frame from a video.")
+    parser.add_argument("--multithread", type=str, default=True)
+    parser.add_argument("--video_folders_path", type=str, default=None, help="Path to the folder containing videos.")
+    parser.add_argument("--video_path", type=str, default=None)
+    parser.add_argument("--output_dir", type=str, default=None, help="Directory to save the frames.")
+    parser.add_argument("--frame_interval", type=int, default=30, help="Save a frame every n frames.")
 
-    save_frames_from_video(video_path, output_dir, frame_interval)
+    args = parser.parse_args()
+
+    if args.video_folders_path is None:
+        video_files = [os.path.join(args.video_folders_path, f) for f in os.listdir(args.video_folders_path) if f.endswith(".mp4")]
+        save_frames_from_video(
+            video_path=args.video_path,
+            frame_interval=args.frame_interval,
+            output_dir=args.output_dir
+        )
+    else:
+        save_frames_from_videos(
+            videos_folder_path=args.video_folders_path,
+            frame_interval=args.frame_interval,
+            multithread=args.multithread
+        )

@@ -28,6 +28,9 @@ pip install ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindi
 pip install nerfstudio
 ns-install-cli
 
+# Other dependencies
+pip install keyboard
+
 # Install COLMAP
 conda install -y -c conda-forge colmap
 
