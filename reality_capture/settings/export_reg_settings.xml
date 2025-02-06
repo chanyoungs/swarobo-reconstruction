@@ -1,11 +1,8 @@
 <Configuration id="{2D5793BC-A65D-4318-A1B9-A05044608385}">
-  <entry key="calexUndistResMode" value="2"/>
-  <entry key="calexUndistPrincipal" value="true"/>
   <entry key="calexTrans" value="1"/>
   <entry key="calexUndistortNaming" value="1"/>
   <entry key="calexUndistortPixelFormat" value="24bppBGR"/>
   <entry key="calexHasDisabled" value="0x1"/>
-  <entry key="calexRequiresUndistortPrincipal" value="0x0"/>
   <entry key="calexExportImages" value="true"/>
   <entry key="calexUndistortImageFormat" value="jpg"/>
   <entry key="MvsExportScaleZ" value="1.0"/>
@@ -13,12 +10,8 @@
   <entry key="MvsExportIsModelCoordinates" value="0"/>
   <entry key="calexRequiresColorCorrection" value="0x0"/>
   <entry key="MvsExportScaleY" value="1.0"/>
-  <entry key="calexRequiresEqualResolution" value="0x0"/>
-  <entry key="calexDownscale" value="0x1"/>
-  <entry key="calexUndistMaxPixels" value="0"/>
   <entry key="calexInputHasLayers" value="0"/>
   <entry key="MvsExportScaleX" value="1.0"/>
-  <entry key="calexUndistFitMode" value="4"/>
   <entry key="MvsExportRotationY" value="0.0"/>
   <entry key="MvsExportcoordinatesystemtype" value="0"/>
   <entry key="MvsExportNormalFlipZ" value="false"/>
@@ -30,14 +23,13 @@
   <entry key="calexHasUndistort" value="1"/>
   <entry key="MvsExportNormalFlipX" value="false"/>
   <entry key="MvsExportRotationZ" value="0.0"/>
-  <entry key="calexExportUndistorted" value="true"/>
+  <entry key="calexExportUndistorted" value="false"/>
   <entry key="calexFileFormat" value="Radiance Fields Transformation File"/>
   <entry key="MvsExportMoveZ" value="0.0"/>
   <entry key="calexFileFormatId" value="{314B5F22-C39F-4050-AE19-2236584B6932}"/>
   <entry key="calexUndistBackColor" value="0"/>
   <entry key="hasRadianceFieldsTransAABB" value="1"/>
   <entry key="hasCalexFileName" value="1"/>
-  <entry key="calexUndistCutOut" value="1.0"/>
   <entry key="calexHasImageExport" value="1"/>
   <entry key="MvsExportMoveX" value="0.0"/>
   <entry key="calexExportDisabled" value="false"/>
