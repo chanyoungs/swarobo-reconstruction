@@ -18,27 +18,37 @@ def main(ip, output_path):
 
     os.makedirs(output_path, exist_ok=True)
 
-    while True:
-        logging.info(f"Checking... Sync from IP: {ip}, to: {output_path}")
+    last_files = sync.get_last_files(api_base_url, count=1)
+    missing_files = sync.find_missing_files(output_path, last_files)
 
-        # API에서 마지막 5개의 파일 가져오기
-        last_files = sync.get_last_files(api_base_url)
+    if missing_files:
+        for idx, file in enumerate(missing_files):
+            logging.info(f"===== {idx + 1}/{len(missing_files)} Name: {file['name']}, URL: {file['url']}")
+            url = f"http://{ip}:82/mp4/100SIYI_VID/{file['name']}"
+            print("Download from", url)
+            conditional_download(f"http://{ip}:82/mp4/100SIYI_VID/{file['name']}", output_path)
 
-        if not last_files:
-            logging.error("파일 목록을 가져올 수 없습니다.")
-        else:
-            # output_path와 비교하여 없는 파일 출력
-            missing_files = sync.find_missing_files(output_path, last_files)
+    # while True:
+    #     logging.info(f"Checking... Sync from IP: {ip}, to: {output_path}")
 
-            if missing_files:
-                for idx, file in enumerate(missing_files):
-                    logging.info(f"===== {idx + 1}/{len(missing_files)} Name: {file['name']}, URL: {file['url']}")
-                    url = f"http://{ip}:82/mp4/100SIYI_VID/{file['name']}"
-                    print("Download from", url)
-                    conditional_download(f"http://{ip}:82/mp4/100SIYI_VID/{file['name']}", output_path)
+    #     # API에서 마지막 5개의 파일 가져오기
+    #     last_files = sync.get_last_files(api_base_url)
 
-        # 1초 대기
-        time.sleep(1)
+    #     if not last_files:
+    #         logging.error("파일 목록을 가져올 수 없습니다.")
+    #     else:
+    #         # output_path와 비교하여 없는 파일 출력
+    #         missing_files = sync.find_missing_files(output_path, last_files)
+
+    #         if missing_files:
+    #             for idx, file in enumerate(missing_files):
+    #                 logging.info(f"===== {idx + 1}/{len(missing_files)} Name: {file['name']}, URL: {file['url']}")
+    #                 url = f"http://{ip}:82/mp4/100SIYI_VID/{file['name']}"
+    #                 print("Download from", url)
+    #                 conditional_download(f"http://{ip}:82/mp4/100SIYI_VID/{file['name']}", output_path)
+
+    #     # 1초 대기
+    #     time.sleep(1)
 
 
 # Press the green button in the gutter to run the script.
