@@ -1,241 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ping Logger</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Ping Logger</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+            body {
+                margin: 0;
+                padding: 20px;
+                font-family: Arial, sans-serif;
+                text-align: center;
+            }
 
-        #addressesInput {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            font-size: 16px;
-        }
+            #addressesInput {
+                width: 100%;
+                padding: 10px;
+                margin-bottom: 10px;
+                font-size: 16px;
+            }
 
-        #controls {
-            margin-bottom: 20px;
-        }
+            #controls {
+                margin-bottom: 20px;
+            }
 
-        #chartContainer {
-            width: 100%;
-            max-width: 100%;
-            height: 70vh;
-        }
+            #chartContainer {
+                width: 100%;
+                max-width: 100%;
+                height: 70vh;
+            }
 
-        canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
+            canvas {
+                width: 100% !important;
+                height: 100% !important;
+            }
 
-        button {
-            padding: 10px 15px;
-            margin: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <h2>Ping Statistics</h2>
+            button {
+                padding: 10px 15px;
+                margin: 5px;
+                font-size: 16px;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Ping Statistics</h2>
 
-    <input type="text" id="addressesInput" placeholder="Enter addresses separated by commas">
-    
-    <div id="controls">
-        <button id="pingButton" onclick="togglePing()">Start Ping</button>
-        <button onclick="downloadLog()">Download Log</button>
-        <button onclick="triggerFileInput()">Load Log</button>
-        <input type="file" id="fileInput" accept=".csv" onchange="loadLog(event)" style="display: none;">
-    </div>
+        <input
+            type="text"
+            id="addressesInput"
+            placeholder="Enter addresses separated by commas"
+        />
 
-    <div id="chartContainer">
-        <canvas id="pingChart"></canvas>
-    </div>
+        <div id="controls">
+            <button id="pingButton" onclick="togglePing()">Start Ping</button>
+            <button onclick="downloadLog()">Download Log</button>
+            <button onclick="triggerFileInput()">Load Log</button>
+            <input
+                type="file"
+                id="fileInput"
+                accept=".csv"
+                onchange="loadLog(event)"
+                style="display: none"
+            />
+        </div>
 
-    <script>
-        let addresses = [];
-        let logData = [];
-        let isPinging = false;
-        let pingInterval;
-        let abortController = new AbortController();
+        <div id="chartContainer">
+            <canvas id="pingChart"></canvas>
+        </div>
 
-        const ctx = document.getElementById('pingChart').getContext('2d');
-        const pingChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: []
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: { title: { display: true, text: 'Time' } },
-                    y: { title: { display: true, text: 'Ping (ms)' } }
+        <script>
+            let addresses = [];
+            let logData = [];
+            let isPinging = false;
+            let pingInterval;
+            let abortController = new AbortController();
+
+            const ctx = document.getElementById("pingChart").getContext("2d");
+            const pingChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: [],
+                    datasets: [],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: "Time" } },
+                        y: { title: { display: true, text: "Ping (ms)" } },
+                    },
+                },
+            });
+
+            function togglePing() {
+                const pingButton = document.getElementById("pingButton");
+
+                if (isPinging) {
+                    clearInterval(pingInterval);
+                    abortController.abort();
+                    abortController = new AbortController();
+                    isPinging = false;
+                    pingButton.textContent = "Start Ping";
+                } else {
+                    addresses = document
+                        .getElementById("addressesInput")
+                        .value.split(",")
+                        .map((addr) => addr.trim());
+                    if (addresses.length === 0 || addresses[0] === "") {
+                        alert("Please enter at least one address.");
+                        return;
+                    }
+
+                    pingChart.data.datasets = addresses.map(
+                        (address, index) => ({
+                            label: address,
+                            borderColor: [
+                                "red",
+                                "blue",
+                                "green",
+                                "purple",
+                                "orange",
+                            ][index % 5],
+                            data: [],
+                            fill: false,
+                        })
+                    );
+                    pingChart.data.labels = [];
+                    pingChart.update();
+
+                    isPinging = true;
+                    pingButton.textContent = "Stop Ping";
+
+                    pingInterval = setInterval(updatePings, 100); // Ping every 100ms
                 }
             }
-        });
 
-        function togglePing() {
-            const pingButton = document.getElementById('pingButton');
+            async function updatePings() {
+                if (!isPinging || addresses.length === 0) return;
 
-            if (isPinging) {
-                clearInterval(pingInterval);
-                abortController.abort();
-                abortController = new AbortController();
-                isPinging = false;
-                pingButton.textContent = "Start Ping";
-            } else {
-                addresses = document.getElementById('addressesInput').value.split(',').map(addr => addr.trim());
-                if (addresses.length === 0 || addresses[0] === "") {
-                    alert("Please enter at least one address.");
+                try {
+                    const results = await Promise.all(
+                        addresses.map((addr) => ping(addr))
+                    );
+                    if (!isPinging) return;
+
+                    const timestamp = new Date().toLocaleTimeString();
+                    results.forEach((time, index) => {
+                        pingChart.data.datasets[index].data.push(time);
+                    });
+
+                    pingChart.data.labels.push(timestamp);
+                    pingChart.update();
+
+                    logData.push([timestamp, ...results]);
+                } catch (error) {
+                    if (error.name !== "AbortError") {
+                        console.error("Ping failed:", error);
+                    }
+                }
+            }
+
+            function ping(address) {
+                return new Promise((resolve) => {
+                    const start = performance.now();
+                    fetch(`https://${address}`, {
+                        mode: "no-cors",
+                        signal: abortController.signal,
+                    })
+                        .finally(() => {
+                            if (isPinging) {
+                                const time = performance.now() - start;
+                                resolve(time);
+                            } else {
+                                resolve(null);
+                            }
+                        })
+                        .catch((error) => {
+                            if (error.name === "AbortError") {
+                                resolve(null);
+                            } else {
+                                resolve(Infinity);
+                            }
+                        });
+                });
+            }
+
+            function downloadLog() {
+                if (logData.length === 0 || addresses.length === 0) {
+                    alert("No data to save.");
                     return;
                 }
 
-                pingChart.data.datasets = addresses.map((address, index) => ({
-                    label: address,
-                    borderColor: ['red', 'blue', 'green', 'purple', 'orange'][index % 5],
-                    data: [],
-                    fill: false,
-                }));
-                pingChart.data.labels = [];
-                pingChart.update();
+                let csvContent = "data:text/csv;charset=utf-8,";
 
-                isPinging = true;
-                pingButton.textContent = "Stop Ping";
+                // Add header row with addresses
+                csvContent += "Timestamp," + addresses.join(",") + "\n";
 
-                pingInterval = setInterval(updatePings, 100); // Ping every 100ms
-            }
-        }
-
-        async function updatePings() {
-            if (!isPinging || addresses.length === 0) return;
-
-            try {
-                const results = await Promise.all(addresses.map(addr => ping(addr)));
-                if (!isPinging) return;
-
-                const timestamp = new Date().toLocaleTimeString();
-                results.forEach((time, index) => {
-                    pingChart.data.datasets[index].data.push(time);
+                // Add each timestamp and corresponding ping results
+                logData.forEach((row) => {
+                    csvContent += row.join(",") + "\n";
                 });
 
-                pingChart.data.labels.push(timestamp);
-                pingChart.update();
+                const blob = new Blob([csvContent], { type: "text/csv" });
 
-                logData.push([timestamp, ...results]);
-            } catch (error) {
-                if (error.name !== "AbortError") {
-                    console.error("Ping failed:", error);
-                }
+                // Generate a timestamped filename
+                const now = new Date();
+                const timestamp = now
+                    .toISOString()
+                    .replace(/[:.]/g, "-")
+                    .slice(0, 19);
+                const filename = `ping_log_${timestamp}.csv`;
+
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                a.click();
             }
-        }
-
-        function ping(address) {
-            return new Promise(resolve => {
-                const start = performance.now();
-                fetch(`https://${address}`, { mode: 'no-cors', signal: abortController.signal })
-                    .finally(() => {
-                        if (isPinging) {
-                            const time = performance.now() - start;
-                            resolve(time);
-                        } else {
-                            resolve(null);
-                        }
-                    })
-                    .catch(error => {
-                        if (error.name === "AbortError") {
-                            resolve(null);
-                        } else {
-                            resolve(Infinity);
-                        }
-                    });
-            });
-        }
-
-        function downloadLog() {
-            if (logData.length === 0 || addresses.length === 0) {
-                alert("No data to save.");
-                return;
-            }
-
-            let csvContent = "data:text/csv;charset=utf-8,";
-
-            // Add header row with addresses
-            csvContent += "Timestamp," + addresses.join(",") + "\n";
-
-            // Add each timestamp and corresponding ping results
-            logData.forEach(row => {
-                csvContent += row.join(",") + "\n";
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'ping_log.csv';
-            a.click();
-        }
-
-        function triggerFileInput() {
-            document.getElementById('fileInput').click();
-        }
-
-        function loadLog(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            // Stop pinging before loading
-            if (isPinging) {
-                togglePing();
-            }
-
-            logData = [];
-            pingChart.data.labels = [];
-            pingChart.data.datasets = [];
-            pingChart.update();
-
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const csvData = event.target.result.split("\n").map(row => row.split(",").map(cell => cell.trim()));
-
-                if (csvData.length < 2 || csvData[0].length < 2) {
-                    alert("Invalid CSV file.");
+            function downloadLog() {
+                if (logData.length === 0 || addresses.length === 0) {
+                    alert("No data to save.");
                     return;
                 }
 
-                // Extract addresses from the first row
-                addresses = csvData[0].slice(1);
-                document.getElementById('addressesInput').value = addresses.join(", ");
+                let csvContent = "data:text/csv;charset=utf-8,";
 
-                // Load timestamped ping results
-                logData = csvData.slice(1).filter(row => row.length > 1); // Remove empty rows
+                // Add header row with addresses
+                csvContent += "Timestamp," + addresses.join(",") + "\n";
 
-                // Update chart datasets
-                pingChart.data.datasets = addresses.map((address, index) => ({
-                    label: address,
-                    borderColor: ['red', 'blue', 'green', 'purple', 'orange'][index % 5],
-                    data: logData.map(row => parseFloat(row[index + 1]) || 0),
-                    fill: false,
-                }));
+                // Add each timestamp and corresponding ping results
+                logData.forEach((row) => {
+                    csvContent += row.join(",") + "\n";
+                });
 
-                pingChart.data.labels = logData.map(row => row[0]);
+                const blob = new Blob([csvContent], { type: "text/csv" });
+
+                // Generate a timestamped filename in YYYY-MM-DD_HH-MM-SS format
+                const now = new Date();
+                const timestamp =
+                    now.getFullYear() +
+                    "-" +
+                    String(now.getMonth() + 1).padStart(2, "0") +
+                    "-" +
+                    String(now.getDate()).padStart(2, "0") +
+                    "_" +
+                    String(now.getHours()).padStart(2, "0") +
+                    "-" +
+                    String(now.getMinutes()).padStart(2, "0") +
+                    "-" +
+                    String(now.getSeconds()).padStart(2, "0");
+                const filename = `ping_log_${timestamp}.csv`;
+
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                a.click();
+            }
+
+            function triggerFileInput() {
+                document.getElementById("fileInput").click();
+            }
+
+            function loadLog(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                // Stop pinging before loading
+                if (isPinging) {
+                    togglePing();
+                }
+
+                logData = [];
+                pingChart.data.labels = [];
+                pingChart.data.datasets = [];
                 pingChart.update();
 
-                // Do not start pinging automatically; let user manually click "Start Ping" button.
-            };
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const csvData = event.target.result
+                        .split("\n")
+                        .map((row) =>
+                            row.split(",").map((cell) => cell.trim())
+                        );
 
-            reader.readAsText(file);
+                    if (csvData.length < 2 || csvData[0].length < 2) {
+                        alert("Invalid CSV file.");
+                        return;
+                    }
 
-            // Reset file input to allow reloading the same file again
-            event.target.value = "";
-        }
-    </script>
-</body>
+                    // Extract addresses from the first row
+                    addresses = csvData[0].slice(1);
+                    document.getElementById("addressesInput").value =
+                        addresses.join(", ");
+
+                    // Load timestamped ping results
+                    logData = csvData.slice(1).filter((row) => row.length > 1); // Remove empty rows
+
+                    // Update chart datasets
+                    pingChart.data.datasets = addresses.map(
+                        (address, index) => ({
+                            label: address,
+                            borderColor: [
+                                "red",
+                                "blue",
+                                "green",
+                                "purple",
+                                "orange",
+                            ][index % 5],
+                            data: logData.map(
+                                (row) => parseFloat(row[index + 1]) || 0
+                            ),
+                            fill: false,
+                        })
+                    );
+
+                    pingChart.data.labels = logData.map((row) => row[0]);
+                    pingChart.update();
+
+                    // Do not start pinging automatically; let user manually click "Start Ping" button.
+                };
+
+                reader.readAsText(file);
+
+                // Reset file input to allow reloading the same file again
+                event.target.value = "";
+            }
+        </script>
+    </body>
 </html>
