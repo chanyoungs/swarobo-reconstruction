@@ -2,12 +2,14 @@ import time
 import dash
 from dash import dcc, html
 import plotly.graph_objects as go
-from dash.dependencies import Output, Input
+from dash.dependencies import Output, Input, State
 import pandas as pd
 import threading
 from datetime import datetime
 from ping3 import ping
 from collections import deque
+import io
+import base64
 
 # Create the Dash app
 app = dash.Dash(__name__)
@@ -28,10 +30,10 @@ app.layout = html.Div([
     html.H1("Live Ping Response Times"),
     
     html.Div([
-        html.Label("Enter Addresses to Ping (comma-separated):"),
+        html.Label("Enter Addresses to Ping (comma-separated): "),
         dcc.Input(id="address-input", type="text", 
                   placeholder="e.g., google.com, 8.8.8.8", 
-                  value=""),
+                  value="192.168.1.11, 192.168.1.12, 192.168.1.13, 192.168.1.14, 192.168.1.15"),
     ]),
     
     html.Div([
@@ -41,7 +43,12 @@ app.layout = html.Div([
 
     html.Div([
         html.Button("Start Ping", id="toggle-ping", n_clicks=0),
-        html.Button("Save Data", id="save-data", n_clicks=0)
+        html.Button("Save Data", id="save-data", n_clicks=0),
+        dcc.Upload(
+            id='load-data',
+            children=html.Button('Load Data'),
+            multiple=False
+        )
     ]),
     
     dcc.Graph(id="live-graph"),
@@ -74,7 +81,7 @@ def get_traces():
         trace_data = traces.get(address, deque(maxlen=100))
         color = COLORS[i % len(COLORS)]
         data.append(go.Scatter(
-            x=[datetime.fromtimestamp(t[0]).strftime('%H:%M:%S') for t in trace_data],
+            x=[datetime.fromtimestamp(float(t[0])).strftime('%H:%M:%S') for t in trace_data],
             y=[t[1] for t in trace_data],
             mode='lines+markers',
             name=address,
@@ -83,13 +90,14 @@ def get_traces():
     return data
 
 @app.callback(
-    [Output('live-graph', 'figure'),
+    [Output('live-graph', 'figure', allow_duplicate=True),
      Output('toggle-ping', 'children'),
      Output('graph-update', 'interval')],
     [Input('toggle-ping', 'n_clicks'),
      Input('ping-interval-input', 'value'),
      Input('address-input', 'value'),
-     Input('graph-update', 'n_intervals')]
+     Input('graph-update', 'n_intervals')],
+     prevent_initial_call=True
 )
 def toggle_ping(n_clicks, interval, addresses_input, n_intervals):
     global ping_thread, ping_running, addresses, ping_interval
@@ -117,10 +125,31 @@ def save_data(n_clicks):
         return dash.no_update
     
     data = {addr: [t[1] for t in traces[addr]] for addr in addresses}
-    timestamps = [datetime.fromtimestamp(t[0]).strftime('%H:%M:%S') for t in next(iter(traces.values()), [])]
+    timestamps = [datetime.fromtimestamp(float(t[0])).strftime('%H:%M:%S') for t in next(iter(traces.values()), [])]
     df = pd.DataFrame(data, index=timestamps)
     
     return dcc.send_data_frame(df.to_csv, filename="ping_data.csv")
+
+@app.callback(
+    Output('live-graph', 'figure'),
+    Input('load-data', 'contents')
+)
+def load_data(contents):
+    global traces, addresses
+    if contents is None:
+        return dash.no_update
+    
+    content_type, content_string = contents.split(',')
+    decoded = base64.b64decode(content_string)
+    df = pd.read_csv(io.StringIO(decoded.decode('utf-8')), index_col=0)
+    
+    # Convert the index (timestamps) into datetime objects or Unix timestamps
+    timestamps = pd.to_datetime(df.index).astype(int) / 10**9  # Convert to Unix timestamp (seconds)
+    
+    addresses = list(df.columns)
+    traces = {col: deque(zip(timestamps, df[col]), maxlen=100) for col in df.columns}
+    
+    return {'data': get_traces(), 'layout': go.Layout(title="Loaded Ping Data")}
 
 # Run the app
 if __name__ == '__main__':
