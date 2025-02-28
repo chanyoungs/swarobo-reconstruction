@@ -2,11 +2,12 @@ import time
 import dash
 from dash import dcc, html
 import plotly.graph_objects as go
-from ping3 import ping
-from collections import deque
+from dash.dependencies import Output, Input
 import pandas as pd
 import threading
 from datetime import datetime
+from ping3 import ping
+from collections import deque
 
 # Create the Dash app
 app = dash.Dash(__name__)
@@ -30,18 +31,23 @@ app.layout = html.Div([
         html.Label("Enter Addresses to Ping (comma-separated):"),
         dcc.Input(id="address-input", type="text", 
                   placeholder="e.g., google.com, 8.8.8.8", 
-                  value="192.168.1.11, 192.168.1.12"),
-        html.Button("Start Ping", id="toggle-ping", n_clicks=0),
+                  value=""),
     ]),
     
     html.Div([
         html.Label("Ping Interval (ms):"),
         dcc.Input(id="ping-interval-input", type="number", value=ping_interval),
     ]),
+
+    html.Div([
+        html.Button("Start Ping", id="toggle-ping", n_clicks=0),
+        html.Button("Save Data", id="save-data", n_clicks=0)
+    ]),
     
     dcc.Graph(id="live-graph"),
     
-    dcc.Interval(id="graph-update", interval=ping_interval, n_intervals=0)
+    dcc.Interval(id="graph-update", interval=ping_interval, n_intervals=0),
+    dcc.Download(id="download-csv")
 ])
 
 # Function to ping addresses
@@ -77,13 +83,13 @@ def get_traces():
     return data
 
 @app.callback(
-    [dash.dependencies.Output('live-graph', 'figure'),
-     dash.dependencies.Output('toggle-ping', 'children'),
-     dash.dependencies.Output('graph-update', 'interval')],
-    [dash.dependencies.Input('toggle-ping', 'n_clicks'),
-     dash.dependencies.Input('ping-interval-input', 'value'),
-     dash.dependencies.Input('address-input', 'value'),
-     dash.dependencies.Input('graph-update', 'n_intervals')]
+    [Output('live-graph', 'figure'),
+     Output('toggle-ping', 'children'),
+     Output('graph-update', 'interval')],
+    [Input('toggle-ping', 'n_clicks'),
+     Input('ping-interval-input', 'value'),
+     Input('address-input', 'value'),
+     Input('graph-update', 'n_intervals')]
 )
 def toggle_ping(n_clicks, interval, addresses_input, n_intervals):
     global ping_thread, ping_running, addresses, ping_interval
@@ -99,6 +105,22 @@ def toggle_ping(n_clicks, interval, addresses_input, n_intervals):
         ping_running = False
     
     return {'data': get_traces(), 'layout': go.Layout(title="Live Ping Response Times")}, "Stop Ping" if ping_running else "Start Ping", ping_interval
+
+@app.callback(
+    Output("download-csv", "data"),
+    Input("save-data", "n_clicks"),
+    prevent_initial_call=True
+)
+def save_data(n_clicks):
+    global traces
+    if not traces:
+        return dash.no_update
+    
+    data = {addr: [t[1] for t in traces[addr]] for addr in addresses}
+    timestamps = [datetime.fromtimestamp(t[0]).strftime('%H:%M:%S') for t in next(iter(traces.values()), [])]
+    df = pd.DataFrame(data, index=timestamps)
+    
+    return dcc.send_data_frame(df.to_csv, filename="ping_data.csv")
 
 # Run the app
 if __name__ == '__main__':
