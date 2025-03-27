@@ -63,6 +63,17 @@ splatfacto-long:
 	--output-dir $(OUTPUT_DIR) \
 	--data $(COLMAP)
 
+splatfacto-mcmc:
+# export MAX_JOBS=1
+	ns-train splatfacto-mcmc \
+	--viewer.quit-on-train-completion=True \
+	--vis viewer+tensorboard \
+	--max-num-iterations=30000 \
+	--steps-per-save=1000 \
+	--save-only-latest-checkpoint=False \
+	--output-dir $(OUTPUT_DIR) \
+	--data $(COLMAP)
+
 nerfacto:
 	ns-train nerfacto \
 	--data $(COLMAP)

@@ -11,7 +11,7 @@ args = parser.parse_args()
 TRANSFORMS_PATH_ORIGINAL = os.path.join(args.data_dir, "transforms_original.json")
 TRANSFORMS_PATH_NEW = os.path.join(args.data_dir, "transforms.json")
 
-if not os.path.exists(TRANSFORMS_PATH_NEW):
+if not os.path.exists(TRANSFORMS_PATH_ORIGINAL):
     shutil.copy(TRANSFORMS_PATH_NEW, TRANSFORMS_PATH_NEW+"_original")
 
 if args.sampling_density >= 1:
