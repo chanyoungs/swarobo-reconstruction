@@ -87,3 +87,5 @@ echo "Setup completed. User $USERNAME can now log in using the SSH key."
 # -------------- Install packages --------------
 sudo apt-get install nvtop -y
 sudo apt-get install ffmpeg -y
+sudo snap install blender --classic
+sudo apt install xorg -y

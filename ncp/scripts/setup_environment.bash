@@ -33,7 +33,3 @@ pip install -e .
 # ns-install-cli
 # Install COLMAP
 conda install -y -c conda-forge colmap
-
-# Install blender
-sudo snap install blender --classic
-sudo apt install xorg -y
