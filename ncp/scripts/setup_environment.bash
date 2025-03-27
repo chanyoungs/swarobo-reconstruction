@@ -25,12 +25,12 @@ conda install -y -c "nvidia/label/cuda-$CUDA_TOOLKIT" cuda-toolkit
 pip install ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
 
 # Install nerfstudio
-pip install nerfstudio
-ns-install-cli
-
-# Other dependencies
-pip install keyboard
-
+git clone https://github.com/nerfstudio-project/nerfstudio.git
+cd nerfstudio
+pip install --upgrade pip setuptools
+pip install -e .
+# pip install nerfstudio
+# ns-install-cli
 # Install COLMAP
 conda install -y -c conda-forge colmap
 
