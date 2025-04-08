@@ -10,7 +10,7 @@ jpeg:
 	--out-dir $(DATA)
 
 process:
-	ns-process-data images --data $(DATA) --output-dir $(COLMAP)	
+	ns-process-data images --data $(DATA) --output-dir $(COLMAP) --no-gpu	
 
 DB_COLMAP=$(COLMAP)/database.db
 process-multicamera:

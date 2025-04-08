@@ -7,7 +7,7 @@ PROCESS_DATA_BOOL=$2
 SAMPLING_DENSITY=$3
 
 if [ "$PROCESS_DATA_BOOL" = "True" ]; then
-    ns-process-data images --data $DATA_DIR --output-dir ${DATA_DIR}_colmap
+    ns-process-data images --data $DATA_DIR --output-dir ${DATA_DIR}_colmap --no-gpu
     DATA_DIR=${DATA_DIR}_colmap
 fi
 
