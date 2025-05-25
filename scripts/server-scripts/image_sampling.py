@@ -5,7 +5,7 @@ import shutil
 
 parser = argparse.ArgumentParser(description="Update file paths in a JSON file.")
 parser.add_argument("--data_dir", type=str, help="Directory to the data folder")
-parser.add_argument("--sampling_density", type=float, help="Sampling density value")
+parser.add_argument("--sampling_density", type=float, help="Sampling density value between 0 and 1")
 args = parser.parse_args()
 
 TRANSFORMS_PATH_ORIGINAL = os.path.join(args.data_dir, "transforms_original.json")

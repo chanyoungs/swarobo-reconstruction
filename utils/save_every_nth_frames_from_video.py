@@ -6,7 +6,7 @@ from multiprocessing import Pool
 import argparse
 import keyboard
 
-def save_frames_from_videos(videos_folder_path, frame_interval, multithread=True):
+def save_frames_from_videos(videos_folder_path, frame_interval, multithread=True, lossless=True):
     video_paths = list(glob(os.path.join(videos_folder_path, "*.mp4")))
 
     pool_args = [
@@ -17,7 +17,8 @@ def save_frames_from_videos(videos_folder_path, frame_interval, multithread=True
                 videos_folder_path,
                 "images",
                 os.path.basename(video).split(".")[0]
-            )
+            ),
+            lossless
         ) for video in video_paths
     ]
 
@@ -35,11 +36,11 @@ def save_frames_from_videos(videos_folder_path, frame_interval, multithread=True
             pool.close()
             pool.join()
     else:
-        for n, (video_path, frame_interval, output_dir) in enumerate(video_paths):
+        for n, (video_path, frame_interval, output_dir, lossless) in enumerate(pool_args):
             print(f"Processing video[{n+1}/{len(video_paths)}]: {video_path}")
-            save_frames_from_video(video_path, frame_interval, output_dir)
+            save_frames_from_video(video_path, frame_interval, output_dir, lossless)
 
-def save_frames_from_video(video_path, frame_interval, output_dir=None):
+def save_frames_from_video(video_path, frame_interval, output_dir=None, lossless=True):
     """
     Extract frames from an MP4 video and save them as JPG images.
 
@@ -77,10 +78,15 @@ def save_frames_from_video(video_path, frame_interval, output_dir=None):
 
             # Save the frame at the specified interval
             if frame_count % frame_interval == 0:
-                filename = os.path.join(output_dir, f"frame_{frame_count:04d}.jpg")
-                cv2.imwrite(filename, frame)
+                if lossless:
+                    cv2.imwrite(
+                        os.path.join(output_dir, f"{output_dir.split(os.sep)[-1]}_frame_{frame_count:04d}.png"),
+                        frame,
+                        [int(cv2.IMWRITE_PNG_COMPRESSION), 6]
+                    )
+                else:
+                    cv2.imwrite(os.path.join(output_dir, f"{output_dir.split(os.sep)[-1]}_frame_{frame_count:04d}.jpg"), frame)
                 saved_frame_count += 1
-
             frame_count += 1
             pbar.update(1)
 
@@ -95,6 +101,7 @@ if __name__ == "__main__":
     parser.add_argument("--video_path", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default=None, help="Directory to save the frames.")
     parser.add_argument("--frame_interval", type=int, default=30, help="Save a frame every n frames.")
+    parser.add_argument("--lossless", type=bool, default=True, help="Save frames in lossless format (PNG).")
 
     args = parser.parse_args()
 
@@ -103,11 +110,13 @@ if __name__ == "__main__":
         save_frames_from_video(
             video_path=args.video_path,
             frame_interval=args.frame_interval,
-            output_dir=args.output_dir
+            output_dir=args.output_dir,
+            lossless=args.lossless
         )
     else:
         save_frames_from_videos(
             videos_folder_path=args.video_folders_path,
             frame_interval=args.frame_interval,
-            multithread=args.multithread
+            multithread=args.multithread,
+            lossless=args.lossless
         )
