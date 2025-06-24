@@ -1,6 +1,6 @@
 #!/bin/bash
-CUDA=126
-CUDA_TOOLKIT=12.6.0
+CUDA=128
+CUDA_TOOLKIT=12.8.0
 
 # # Install miniconda
 mkdir -p ~/miniconda3
@@ -13,7 +13,7 @@ source ~/miniconda3/bin/activate
 conda init --all
 
 # Setup nerfstudio venv
-conda create --name nerfstudio -y python=3.8
+conda create --name nerfstudio -y python=3.10
 source $(conda info --base)/etc/profile.d/conda.sh
 conda activate nerfstudio
 python -m pip install --upgrade pip
