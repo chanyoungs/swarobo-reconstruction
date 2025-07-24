@@ -19,12 +19,12 @@ set Project="%ProjectFolder%\RS.rsproj"
 
 :: run RealityScan
 %RealityScanExe% -newScene ^
-	-set "appIncSubdirs=true" ^
-    -save %Project% ^
-    -addFolder %ProjectFolder% ^
-    -align ^
-    -selectMaximalComponent ^
-    -exportRegistration %ProjectFolder%\transforms.csv "%SettingsFolder%\export_reg_csv_settings.xml" ^
-    -exportSparsePointCloud %ProjectFolder%\sparse_pc.ply "%SettingsFolder%\export_ply_settings.xml" ^
-    -save %Project% ^
+        -set "appIncSubdirs=true" ^
+        -save %Project% ^
+        -addFolder %ProjectFolder% ^
+        -align ^
+        -selectMaximalComponent ^
+        -exportRegistration %ProjectFolder%\transforms.csv "%SettingsFolder%\export_reg_csv_settings.xml" ^
+        -exportSparsePointCloud %ProjectFolder%\sparse_pc.ply "%SettingsFolder%\export_ply_settings.xml" ^
+        -save %Project% ^
 	-quit

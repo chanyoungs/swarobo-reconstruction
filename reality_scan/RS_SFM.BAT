@@ -30,9 +30,7 @@ mkdir %ProjectFolder%\%ProjectName%\images
         -save %Project% ^
         -align ^
         -selectMaximalComponent ^
-        -exportRegistration %ProjectFolder%\%ProjectName%\images\transforms.json ^
-        -exportSparsePointCloud %ProjectFolder%\%ProjectName%\sparse_pc.ply ^
+        -exportRegistration %ProjectFolder%\%ProjectName%\images\transforms.json "%SettingsFolder%\export_reg_settings.xml" ^
+        -exportSparsePointCloud %ProjectFolder%\%ProjectName%\sparse_pc.ply "%SettingsFolder%\export_ply_settings.xml" ^
         -save %Project% ^
 	-quit 
-@REM -exportRegistration %ProjectFolder%\%ProjectName%\images\transforms.json "%SettingsFolder%\export_reg_settings.xml" ^
-@REM -exportSparsePointCloud %ProjectFolder%\%ProjectName%\sparse_pc.ply "%SettingsFolder%\export_ply_settings.xml" ^
