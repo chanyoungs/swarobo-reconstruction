@@ -1,7 +1,8 @@
-INPUT=/media/chanyoungs/DATA1/SWAROBO-Data/blender/sampling_1
+INPUT=/media/chanyoungs/Data/SWAROBO/data/250730_snowpeak_buildings/images
 DATA=$(INPUT)-jpeg
+DATA=/media/chanyoungs/Data/SWAROBO/data/250730_snowpeak_buildings/images
 COLMAP=$(DATA)-colmap
-SAVE_DRIVE=/media/chanyoungs/DATA1/SWAROBO
+SAVE_DRIVE=/home/chanyoungs/SWAROBO/workspace
 OUTPUT_DIR=$(SAVE_DRIVE)/outputs
 
 jpeg:
@@ -10,7 +11,7 @@ jpeg:
 	--out-dir $(DATA)
 
 process:
-	ns-process-data images --data $(DATA) --output-dir $(COLMAP) --no-gpu	
+	ns-process-data images --data $(DATA) --output-dir $(COLMAP) --no-gpu
 
 DB_COLMAP=$(COLMAP)/database.db
 process-multicamera:
@@ -126,3 +127,20 @@ glomap_resume:
 # 	--skip-colmap \
 # 	--colmap-model-path $(GLOMAP)/0 \
 # 	--no-use-single-camera-mode
+
+PORT := 7007
+CONTAINER := nerfstudio-custom
+docker:
+	docker run --gpus all --rm \
+		-p ${PORT}:${PORT} \
+		-v ${COLMAP}:/data \
+		-v ${OUTPUT_DIR}:/outputs \
+		${CONTAINER} \
+		-c "ns-train splatfacto-mcmc --data /data --output-dir /outputs --viewer.websocket-port ${PORT}"
+
+docker-view:
+	docker run --gpus all --rm -it \
+		-p ${PORT}:${PORT} \
+		-v ${COLMAP}:${COLMAP} \
+		-v ${OUTPUT_DIR}:${OUTPUT_DIR} \
+		${CONTAINER}

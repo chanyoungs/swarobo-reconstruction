@@ -1,7 +1,7 @@
 # EasyVolCap Installation Guide
 ```bash
 # System dependencies
-sudo apt-get update && sudo apt-get install libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev
+sudo apt-get update && sudo apt-get install libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev ffmpeg
 
 # Python dependencies
 conda create -n ev python=3.10 -y
