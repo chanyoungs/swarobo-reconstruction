@@ -143,4 +143,4 @@ docker-view:
 		-p ${PORT}:${PORT} \
 		-v ${COLMAP}:${COLMAP} \
 		-v ${OUTPUT_DIR}:${OUTPUT_DIR} \
-		${CONTAINER}
+		${CONTAINER} -c "ns-viewer --load-config ${OUTPUT_DIR}/images-colmap/splatfacto/2025-08-04_175607/config.yml --viewer.websocket-port ${PORT}"
