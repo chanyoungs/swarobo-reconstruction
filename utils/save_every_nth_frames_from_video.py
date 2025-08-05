@@ -7,7 +7,8 @@ import argparse
 import keyboard
 
 def save_frames_from_videos(videos_folder_path, frame_interval, multithread=True, lossless=True):
-    video_paths = list(glob(os.path.join(videos_folder_path, "*.mp4")))
+    video_paths = list(glob(os.path.join(videos_folder_path, "*")))
+    video_paths = [path for path in video_paths if path.lower().endswith((".mp4", ".mov"))]
 
     pool_args = [
         (
@@ -106,7 +107,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.video_folders_path is None:
-        video_files = [os.path.join(args.video_folders_path, f) for f in os.listdir(args.video_folders_path) if f.endswith(".mp4")]
         save_frames_from_video(
             video_path=args.video_path,
             frame_interval=args.frame_interval,
