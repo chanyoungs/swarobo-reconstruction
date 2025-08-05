@@ -20,7 +20,12 @@ RUN TCNN_CUDA_ARCHITECTURES=120 pip install git+https://github.com/NVlabs/tiny-c
 RUN git clone https://github.com/nerfstudio-project/nerfstudio.git && \
     sed -i 's/torch\.load(load_path, map_location="cpu")/torch.load(load_path, map_location="cpu", weights_only=False)/g' /workspace/nerfstudio/nerfstudio/utils/eval_utils.py && \
     cd nerfstudio && \
-    pip install -e .
+    pip install -e . && \
+    cd .. && \
+    git clone https://github.com/nerfstudio-project/gsplat.git && \
+    cd gsplat && \
+    git submodule update --init --recursive && \
+    TORCH_CUDA_ARCH_LIST="12.0" pip install .
 
 # Set the entrypoint
 ENTRYPOINT ["/bin/bash"]

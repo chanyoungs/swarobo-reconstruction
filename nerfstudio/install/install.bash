@@ -1,6 +1,7 @@
 #!/bin/bash
 CUDA=128
 CUDA_TOOLKIT=12.8.0
+export TORCH_CUDA_ARCH_LIST="12.0"
 
 # # Install miniconda
 mkdir -p ~/miniconda3
@@ -31,7 +32,14 @@ git clone https://github.com/nerfstudio-project/nerfstudio.git
 cd nerfstudio
 pip install --upgrade pip setuptools
 pip install -e .
+cd ..
 # pip install nerfstudio
 # ns-install-cli
 # Install COLMAP
 conda install -y -c conda-forge colmap
+
+# Install gsplat
+git clone https://github.com/nerfstudio-project/gsplat.git
+cd gsplat
+git submodule update --init --recursive
+TORCH_CUDA_ARCH_LIST="12.0" pip install .
