@@ -20,8 +20,10 @@ python -m pip install --upgrade pip
 
 # Install prerequisites
 pip uninstall -y torch torchvision functorch tinycudann
-pip install torch==2.1.2+cu$CUDA torchvision==0.16.2+cu$CUDA --extra-index-url https://download.pytorch.org/whl/cu$CUDA
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu$CUDA
 conda install -y -c "nvidia/label/cuda-$CUDA_TOOLKIT" cuda-toolkit
+
+# INSTRUCTIONS: Patch cuda toolkit https://stackoverflow.com/questions/79594396/nvcc-compilation-error-exception-specification-is-incompatible-with-that-of-pre
 pip install ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
 
 # Install nerfstudio
