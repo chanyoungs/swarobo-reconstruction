@@ -17,9 +17,10 @@
     - Add `Saver` node in between `MediaIn` and `MediaOut`.
     - Choose file name by clicking `File` -> Browse button.
         - Choose directory and set file name as .png and file type as `All Files`.
+    - In `Format` tab, set Gamma Mode to `sRGB`.
     - In `Settings`, set:
         ```
-        Blend = (comp. CurrentTime % N == 0) and 1 or 0
+        Blend = (comp. CurrentTime % 24 == 0) and 1 or 0
         ```
-        where `N` should be replaced with the number of frames to skip(e.g. 24).
+        where `24` should be replaced with the number of frames to skip(e.g. 24).
     - Then on the top menu, click `Fusion` -> `Render All Savers`.

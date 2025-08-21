@@ -1,30 +1,37 @@
-::Aligns photos in RS and trains in PostShot
+:: Aligns photos in RS and trains in PostShot
 
-:: path to RealityScan and PostShot directories
-set RealityScanExe="C:\Program Files\Epic Games\RealityScan_2.0\RealityScan.exe"
+:: Path to RealityScan executable
+set RealityScanExe="%PROGRAMFILES%\Epic Games\RealityScan_2.0\RealityScan.exe"
 
-:: root path of project (%~dp0 means the folder in which this script is stored)
+:: Root folder of this script
 set RootFolder=%~dp0
 
+:: Input folder passed as argument
 set ProjectFolder=%~1
 
-:: set path to the folder with your images
-set Images=%ProjectFolder%
+:: Verify images folder exists
+if not exist "%ProjectFolder%\images" (
+    echo ERROR: "%ProjectFolder%\images" not found.
+    exit /b 1
+)
 
-:: set the path to RealityScan settings
+:: Path to images folder
+set Images=%ProjectFolder%\images
+
+:: Path to RealityScan settings
 set SettingsFolder="%RootFolder%settings"
 
-:: set the path, where project is going to be saved, and its name
+:: Path to save RealityScan project
 set Project="%ProjectFolder%\RS.rsproj"
 
-:: run RealityScan
+:: Run RealityScan
 %RealityScanExe% -newScene ^
-        -set "appIncSubdirs=true" ^
-        -save %Project% ^
-        -addFolder %ProjectFolder% ^
-        -align ^
-        -selectMaximalComponent ^
-        -exportRegistration %ProjectFolder%\transforms.csv "%SettingsFolder%\export_reg_csv_settings.xml" ^
-        -exportSparsePointCloud %ProjectFolder%\sparse_pc.ply "%SettingsFolder%\export_ply_settings.xml" ^
-        -save %Project% ^
-	-quit
+    -set "appIncSubdirs=true" ^
+    -save %Project% ^
+    -addFolder %Images% ^
+    -align ^
+    -selectMaximalComponent ^
+    -exportRegistration %Images%\transforms.csv "%SettingsFolder%\export_reg_csv_settings.xml" ^
+    -exportSparsePointCloud %Images%\sparse_pc.ply "%SettingsFolder%\export_ply_settings.xml" ^
+    -save %Project% ^
+    -quit

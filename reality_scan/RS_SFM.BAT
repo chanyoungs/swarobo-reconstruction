@@ -1,7 +1,7 @@
 ::Aligns photos in RS and trains in PostShot
 
 :: path to RealityScan and PostShot directories
-set RealityScanExe="C:\Program Files\Epic Games\RealityScan_2.0\RealityScan.exe"
+set RealityScanExe="%PROGRAMFILES%\Epic Games\RealityScan_2.0\RealityScan.exe"
 
 :: root path of project (%~dp0 means the folder in which this script is stored)
 set RootFolder=%~dp0

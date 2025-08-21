@@ -25,7 +25,7 @@ def match_histograms(reference_img_path, original_img_path, save_dir):
     save_path = os.path.join(save_dir, filename)
     plt.imsave(save_path, matched)
 
-def match_images(images_dir, reference_img_path):
+def match_images_folders(images_dir, reference_img_path):
     for image_path in tqdm(glob(os.path.join(images_dir, "*", '*.png'))):
         if os.path.realpath(os.path.dirname(image_path)) != os.path.realpath(os.path.dirname(reference_img_path)):
             save_dir = os.path.realpath(os.path.join(
@@ -34,7 +34,15 @@ def match_images(images_dir, reference_img_path):
             ))
             match_histograms(reference_img_path, image_path, save_dir)
 
+def match_images(images_dir, reference_img_path):
+    save_dir = images_dir + "_normalized"
+    for i in tqdm(glob(os.path.join(images_dir, '*.png'))):
+        image_path = os.path.realpath(i)
+        if image_path != reference_img_path:
+            match_histograms(reference_img_path, image_path, save_dir)
+
 if __name__ == "__main__":
-    reference_img = "D:/Users/chany/Downloads/pngs/siyi_a8_mini_png - Copy/images/drone_1/drone_1_frame_0000.png"
-    image_dir = "D:/Users/chany/Downloads/pngs/siyi_a8_mini_png - Copy/images"
+    reference_img = "D:/250819_snowpeak_d3/images/0409.png"
+    image_dir = "D:/250819_snowpeak_d3/images"
+    # match_images_folders(image_dir, reference_img)
     match_images(image_dir, reference_img)
