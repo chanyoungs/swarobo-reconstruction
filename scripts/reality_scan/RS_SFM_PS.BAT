@@ -35,3 +35,5 @@ set Project="%ProjectFolder%\RS.rsproj"
     -exportSparsePointCloud %Images%\sparse_pc.ply "%SettingsFolder%\export_ply_settings.xml" ^
     -save %Project% ^
     -quit
+
+@echo off

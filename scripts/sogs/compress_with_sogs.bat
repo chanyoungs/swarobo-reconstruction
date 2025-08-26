@@ -23,3 +23,4 @@ goto loop
 
 :end
 endlocal
+pause
