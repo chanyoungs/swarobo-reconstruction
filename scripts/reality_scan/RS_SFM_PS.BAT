@@ -1,4 +1,4 @@
-:: Aligns photos in RS and trains in PostShot
+@echo off
 
 :: Path to RealityScan executable
 set RealityScanExe="%PROGRAMFILES%\Epic Games\RealityScan_2.0\RealityScan.exe"
@@ -10,8 +10,11 @@ set RootFolder=%~dp0
 set ProjectFolder=%~1
 
 :: Verify images folder exists
-if not exist "%ProjectFolder%\images" (
-    echo ERROR: "%ProjectFolder%\images" not found.
+if not exist %ProjectFolder%\images (
+    echo ERROR: %ProjectFolder%\images not found.
+    echo.
+    echo Press any key to continue...
+    pause > nul
     exit /b 1
 )
 
@@ -35,5 +38,17 @@ set Project="%ProjectFolder%\RS.rsproj"
     -exportSparsePointCloud %Images%\sparse_pc.ply "%SettingsFolder%\export_ply_settings.xml" ^
     -save %Project% ^
     -quit
+    
+:: Check for errorlevel after RealityScan command
+if %errorlevel% neq 0 (
+    echo.
+    echo ERROR: RealityScan command failed with exit code %errorlevel%.
+    echo Press any key to continue...
+    pause > nul
+    exit /b %errorlevel%
+)
 
-@echo off
+echo.
+echo Script completed successfully.
+echo Press any key to continue...
+pause > nul
