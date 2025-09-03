@@ -5,6 +5,8 @@ from glob import glob
 from multiprocessing import Pool, Manager, freeze_support
 import argparse
 from queue import Empty
+import numpy as np
+import traceback
 
 def is_notebook():
     """Checks if the code is running in a Jupyter-like environment."""
@@ -17,10 +19,9 @@ def is_notebook():
 
 def save_frames_from_videos(videos_folder_path, frame_interval=30, multithread=True, lossless=True, tqdm_cls=None, is_notebook_env=None):
     """
-    Processes a folder of videos with a universal UI.
-    If tqdm_cls or is_notebook_env are not provided, it will auto-detect the environment.
+    Processes a folder of videos with a universal UI, fully supporting Unicode paths.
     """
-    # CHANGED: Environment setup is now encapsulated inside the function.
+    # Environment setup is encapsulated inside the function.
     if is_notebook_env is None:
         is_notebook_env = is_notebook()
     
@@ -38,14 +39,22 @@ def save_frames_from_videos(videos_folder_path, frame_interval=30, multithread=T
         print("No video files (.mp4, .mov) found in the specified folder.")
         return
 
-    with Manager() as manager:
-        progress_queue = manager.Queue()
-        pool_args = [(n, video, frame_interval, os.path.join(videos_folder_path, "images", os.path.basename(video).split(".")[0]), lossless, progress_queue) for n, video in enumerate(video_paths)]
+    # Prepare arguments for each worker process
+    pool_args = []
+    for n, video in enumerate(video_paths):
+        # Create the full output directory path
+        video_name = os.path.basename(video).split(".")[0]
+        output_dir = os.path.join(videos_folder_path, "images", video_name)
+        pool_args.append((n, video, frame_interval, output_dir, lossless))
 
-        if multithread:
+    if multithread:
+        with Manager() as manager:
+            progress_queue = manager.Queue()
+            # Add the queue to the arguments for each worker
+            worker_args = [args + (progress_queue,) for args in pool_args]
+
             with Pool() as pool:
-                pool_result = pool.starmap_async(save_frames_from_video, pool_args)
-
+                pool_result = pool.starmap_async(save_frames_from_video, worker_args)
                 stop_message = "Press 'q' to stop." if not is_notebook_env else "To stop, you must interrupt the kernel."
                 print(f"Processing videos... {stop_message}")
                 
@@ -60,7 +69,6 @@ def save_frames_from_videos(videos_folder_path, frame_interval=30, multithread=T
                             print("\nProcess terminated by user.")
                             break
                         try:
-                            # Message processing logic remains the same...
                             msg_type, worker_id, *data = progress_queue.get_nowait()
                             if msg_type == 'start':
                                 total, name = data
@@ -80,56 +88,92 @@ def save_frames_from_videos(videos_folder_path, frame_interval=30, multithread=T
                         pbar.close()
                     overall_pbar.close()
                     print("\nAll processes finished.")
-        else: # Single-threaded execution
-            for _, video_path, *args in pool_args:
-                save_frames_from_video_single(video_path, *args[:3], tqdm_cls=tqdm_cls)
+    else: # Single-threaded execution
+        print("Processing videos in single-threaded mode...")
+        for _, video_path, frame_interval, output_dir, lossless in tqdm_cls(pool_args, desc="Video Progress"):
+            save_frames_from_video_single(video_path, frame_interval, output_dir, lossless, tqdm_cls)
 
 def save_frames_from_video(worker_id, video_path, frame_interval, output_dir, lossless, progress_queue):
-    """Worker function for multiprocessing. (Unchanged)"""
-    # This function's logic is identical to the previous version.
-    os.makedirs(output_dir, exist_ok=True)
-    cap = cv2.VideoCapture(video_path)
-    if not cap.isOpened(): return
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    progress_queue.put(('start', worker_id, total_frames, os.path.basename(video_path)))
-    frame_count = 0
-    while True:
-        ret, frame = cap.read()
-        if not ret: break
-        if frame_count % frame_interval == 0:
-            filename_base = f"{output_dir.split(os.sep)[-1]}_frame_{frame_count:04d}"
-            if lossless:
-                cv2.imwrite(os.path.join(output_dir, f"{filename_base}.png"), frame, [int(cv2.IMWRITE_PNG_COMPRESSION), 6])
-            else:
-                cv2.imwrite(os.path.join(output_dir, f"{filename_base}.jpg"), frame)
-        frame_count += 1
-        progress_queue.put(('update', worker_id, 1))
-    cap.release()
-    progress_queue.put(('done', worker_id))
+    """Worker function for multiprocessing with Unicode path fix."""
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            print(f"🔴 [Worker {worker_id}] Could not open video: {video_path}")
+            return
 
-def save_frames_from_video_single(video_path, frame_interval, output_dir, lossless, tqdm_cls):
-    """Single-threaded version for sequential processing. (Unchanged)"""
-    # This function's logic is identical to the previous version.
-    os.makedirs(output_dir, exist_ok=True)
-    cap = cv2.VideoCapture(video_path)
-    if not cap.isOpened():
-        print("Error: Cannot open video file.")
-        return
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    with tqdm_cls(total=total_frames, desc=f"Extracting {os.path.basename(video_path)}", unit="frame") as pbar:
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        progress_queue.put(('start', worker_id, total_frames, os.path.basename(video_path)))
+        
         frame_count = 0
         while True:
             ret, frame = cap.read()
             if not ret: break
-            # Frame saving logic here...
+
+            if frame_count % frame_interval == 0:
+                if frame is None:
+                    continue
+
+                ext = ".png" if lossless else ".jpg"
+                filename_base = f"{os.path.basename(output_dir)}_frame_{frame_count:04d}"
+                full_path = os.path.join(output_dir, f"{filename_base}{ext}")
+
+                result, buffer = cv2.imencode(ext, frame)
+                if result:
+                    with open(full_path, 'wb') as f:
+                        f.write(buffer)
+                
             frame_count += 1
-            pbar.update(1)
-    cap.release()
+            progress_queue.put(('update', worker_id, 1))
+
+        cap.release()
+        progress_queue.put(('done', worker_id))
+
+    except Exception:
+        print(f"🔴🔴🔴 [Worker {worker_id}] A critical exception occurred! 🔴🔴🔴")
+        traceback.print_exc()
+
+def save_frames_from_video_single(video_path, frame_interval, output_dir, lossless, tqdm_cls):
+    """Single-threaded version with Unicode path fix."""
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            print(f"Error: Cannot open video file: {video_path}")
+            return
+        
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        
+        with tqdm_cls(total=total_frames, desc=f"Extracting {os.path.basename(video_path)}", unit="frame", leave=False) as pbar:
+            frame_count = 0
+            while True:
+                ret, frame = cap.read()
+                if not ret: break
+                
+                if frame_count % frame_interval == 0:
+                    if frame is None:
+                        continue
+
+                    # Apply the same Unicode fix here
+                    ext = ".png" if lossless else ".jpg"
+                    filename_base = f"{os.path.basename(output_dir)}_frame_{frame_count:04d}"
+                    full_path = os.path.join(output_dir, f"{filename_base}{ext}")
+
+                    result, buffer = cv2.imencode(ext, frame)
+                    if result:
+                        with open(full_path, 'wb') as f:
+                            f.write(buffer)
+
+                frame_count += 1
+                pbar.update(1)
+                
+        cap.release()
+    except Exception:
+        print(f"🔴🔴🔴 An exception occurred while processing {video_path}! 🔴🔴🔴")
+        traceback.print_exc()
 
 if __name__ == "__main__":
-    # Add freeze_support() for compatibility with bundled executables (e.g., PyInstaller)
     freeze_support() 
-
     parser = argparse.ArgumentParser(description="Extract frames from videos with a progress UI.")
     parser.add_argument("--video_folders_path", type=str, required=True, help="Path to the folder containing videos.")
     parser.add_argument("--frame_interval", type=int, default=30, help="Save a frame every n frames.")
@@ -138,7 +182,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # CHANGED: The call is now simple again. The function handles its own setup.
     save_frames_from_videos(
         videos_folder_path=args.video_folders_path,
         frame_interval=args.frame_interval,
