@@ -65,6 +65,7 @@ class BatchProcessorApp:
         self.folder_listbox = tk.Listbox(list_frame, selectmode=tk.SINGLE, bg="#f0f0f0", relief="solid", borderwidth=1, font=("Consolas", 9))
         self.folder_listbox.grid(row=0, column=0, sticky="nsew")
         self.folder_listbox.bind('<<ListboxSelect>>', self.on_listbox_click)
+        self.folder_listbox.bind('<Double-1>', self.on_listbox_double_click)
 
         scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.folder_listbox.yview)
         scrollbar.grid(row=0, column=1, sticky="ns")
@@ -254,6 +255,25 @@ class BatchProcessorApp:
         # Reset last log message to ensure line replacement works correctly on this view
         self.last_log_message = item['log_history'][-1] if item['log_history'] else ""
 
+    def on_listbox_double_click(self, event):
+        """Opens the selected folder in the system's file explorer on double-click."""
+        selection = self.folder_listbox.curselection()
+        if not selection: return
+        
+        index = selection[0]
+        if 0 <= index < len(self.folder_items):
+            folder_path = self.folder_items[index]['path']
+            try:
+                if sys.platform == "win32":
+                    os.startfile(folder_path)
+                elif sys.platform == "darwin": # macOS
+                    subprocess.Popen(["open", folder_path])
+                else: # Linux and other UNIX-like OS
+                    subprocess.Popen(["xdg-open", folder_path])
+            except Exception as e:
+                self.log(f"Error opening folder: {e}")
+                messagebox.showerror("Error", f"Could not open folder:\n{folder_path}\n\n{e}")
+
     def update_listbox_item(self, index, new_status=None):
         """Updates the text and color of an item in the listbox."""
         if not (0 <= index < len(self.folder_items)): return
@@ -368,3 +388,4 @@ if __name__ == "__main__":
     root = TkinterDnD.Tk()
     app = BatchProcessorApp(root)
     root.mainloop()
+
