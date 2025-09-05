@@ -21,6 +21,9 @@ if not exist %ProjectFolder%\images (
 :: Path to images folder
 set Images=%ProjectFolder%\images
 
+:: Path to camera poses and sparse point cloud
+set Poses=%ProjectFolder%\poses
+
 :: Path to RealityScan settings
 set SettingsFolder="%RootFolder%settings"
 
@@ -34,8 +37,8 @@ set Project="%ProjectFolder%\RS.rsproj"
     -addFolder %Images% ^
     -align ^
     -selectMaximalComponent ^
-    -exportRegistration %Images%\transforms.csv "%SettingsFolder%\export_reg_csv_settings.xml" ^
-    -exportSparsePointCloud %Images%\sparse_pc.ply "%SettingsFolder%\export_ply_settings.xml" ^
+    -exportRegistration %Poses%\transforms.csv "%SettingsFolder%\export_reg_csv_settings.xml" ^
+    -exportSparsePointCloud %Poses%\sparse_pc.ply "%SettingsFolder%\export_ply_settings.xml" ^
     -save %Project% ^
     -quit
     

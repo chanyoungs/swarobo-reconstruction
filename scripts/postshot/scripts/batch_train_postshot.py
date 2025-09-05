@@ -11,7 +11,7 @@ import sys
 class BatchProcessorApp:
     """
     A GUI application to drag and drop folders and process them sequentially
-    with a given batch script.
+    with a given batch script. Folders can be added to the queue at any time.
     """
     def __init__(self, root):
         self.root = root
@@ -31,6 +31,7 @@ class BatchProcessorApp:
         
         # --- Status Tracking ---
         self.folder_items = [] # Will store {'path': str, 'status': str, 'error': str|None, 'progress_text': str, 'log_history': list}
+        self.is_processing = False # Flag to check if the worker thread is active
         self.STATUS_ICONS = {
             "pending": "⚪",
             "processing": "⚙️",
@@ -102,11 +103,19 @@ class BatchProcessorApp:
         for path in paths:
             clean_path = path.strip('{} ').strip()
             if os.path.isdir(clean_path):
+                # Avoid adding duplicates
+                if any(item['path'] == clean_path for item in self.folder_items):
+                    continue
                 item = {'path': clean_path, 'status': 'pending', 'error': None, 'progress_text': '', 'log_history': []}
                 self.folder_items.append(item)
                 self.update_listbox_item(len(self.folder_items) - 1, 'pending')
+        
+        # If processing is active, the worker will automatically pick up the new folders.
 
     def clear_list(self):
+        if self.is_processing:
+            messagebox.showwarning("Processing Active", "Cannot clear the list while processing is active.")
+            return
         self.folder_listbox.delete(0, tk.END)
         self.folder_items.clear()
         self.last_log_message = ""
@@ -115,33 +124,49 @@ class BatchProcessorApp:
         self.log_text.config(state="disabled")
 
     def start_processing_thread(self):
-        if not self.folder_items:
-            self.log("No folders in the list to process.")
+        if self.is_processing:
+            self.log("Processing is already active. Newly added folders will be processed automatically.")
             return
+
+        if not any(item['status'] == 'pending' for item in self.folder_items):
+            self.log("No pending folders to process.")
+            return
+            
         if not os.path.isfile(self.batch_script_path):
             self.log(f"ERROR: '{os.path.basename(self.batch_script_path)}' not found.")
             return
 
-        for i in range(len(self.folder_items)):
-            self.folder_items[i]['status'] = 'pending'
-            self.folder_items[i]['error'] = None
-            self.folder_items[i]['progress_text'] = ''
-            self.folder_items[i]['log_history'] = []
-            self.update_listbox_item(i, 'pending')
-            
+        self.is_processing = True
         self.start_button.config(state="disabled")
         self.clear_button.config(state="disabled")
 
-        thread = threading.Thread(target=self.processing_worker, args=(self.folder_items[:],), daemon=True)
+        thread = threading.Thread(target=self.processing_worker, daemon=True)
         thread.start()
 
-    def processing_worker(self, folders_to_process):
+    def processing_worker(self):
         self.log("--- Starting Batch Process ---")
-        for i, item in enumerate(folders_to_process):
-            folder_path = item['path']
-            self.log_queue.put(('SELECT_AND_CLEAR_LOG', i))
-            self.log_queue.put(('UPDATE_STATUS', i, 'processing'))
-            self.log(f"\n({i+1}/{len(folders_to_process)}) Processing: {os.path.basename(folder_path)}", i)
+        
+        while True:
+            # Find the next folder with a 'pending' status
+            task_index = -1
+            for i, item in enumerate(self.folder_items):
+                if item['status'] == 'pending':
+                    task_index = i
+                    break
+            
+            if task_index == -1:
+                # No more pending folders found, exit the loop
+                self.log("\n--- All folders have been processed. ---")
+                break
+
+            folder_path = self.folder_items[task_index]['path']
+            self.log_queue.put(('SELECT_AND_CLEAR_LOG', task_index))
+            self.log_queue.put(('UPDATE_STATUS', task_index, 'processing'))
+            
+            # Dynamically calculate progress for the log message
+            total_items = len(self.folder_items)
+            completed_count = sum(1 for itm in self.folder_items if itm['status'] in ['done', 'error'])
+            self.log(f"\n({completed_count + 1}/{total_items}) Processing: {os.path.basename(folder_path)}", task_index)
             
             command = [self.batch_script_path, folder_path]
             try:
@@ -149,8 +174,8 @@ class BatchProcessorApp:
                 
                 for line in iter(process.stdout.readline, ''):
                     line = line.strip()
-                    self.log(line, i)
-                    self._parse_progress_from_line(i, line)
+                    self.log(line, task_index)
+                    self._parse_progress_from_line(task_index, line)
                 
                 process.stdout.close()
                 return_code = process.wait()
@@ -161,16 +186,15 @@ class BatchProcessorApp:
                     if stderr_output: 
                         error_header += f"\n\n--- Error Stream ---\n{stderr_output}"
                     
-                    self.log_queue.put(('UPDATE_ERROR', i, error_header))
+                    self.log_queue.put(('UPDATE_ERROR', task_index, error_header))
                 else:
-                    self.log(f"Finished processing: {os.path.basename(folder_path)}", i)
-                    self.log_queue.put(('UPDATE_PROGRESS', i, ''))
-                    self.log_queue.put(('UPDATE_STATUS', i, 'done'))
+                    self.log(f"Finished processing: {os.path.basename(folder_path)}", task_index)
+                    self.log_queue.put(('UPDATE_PROGRESS', task_index, ''))
+                    self.log_queue.put(('UPDATE_STATUS', task_index, 'done'))
 
             except Exception as e:
-                self.log_queue.put(('UPDATE_ERROR', i, f"An exception occurred: {e}"))
+                self.log_queue.put(('UPDATE_ERROR', task_index, f"An exception occurred: {e}"))
         
-        self.log("\n--- All folders have been processed. ---")
         self.log_queue.put("TASK_COMPLETE")
 
     def _parse_progress_from_line(self, index, line):
@@ -214,7 +238,7 @@ class BatchProcessorApp:
         index = selection[0]
         self.log_view_index = index # Track that user is viewing this index
         item = self.folder_items[index]
-            
+                
         self.log_text.config(state="normal")
         self.log_text.delete(1.0, tk.END)
         
@@ -274,6 +298,7 @@ class BatchProcessorApp:
             while True:
                 message_obj = self.log_queue.get_nowait()
                 if message_obj == "TASK_COMPLETE":
+                    self.is_processing = False
                     self.start_button.config(state="normal")
                     self.clear_button.config(state="normal")
                     self.last_log_message = ""
@@ -343,4 +368,3 @@ if __name__ == "__main__":
     root = TkinterDnD.Tk()
     app = BatchProcessorApp(root)
     root.mainloop()
-
