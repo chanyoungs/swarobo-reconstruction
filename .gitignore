@@ -5,3 +5,4 @@
 hloc/Hierarchical-Localization
 *.pyc
 *.dat
+__pycache__
