@@ -22,12 +22,9 @@ class BatchProcessorApp:
         self.root.grid_rowconfigure(3, weight=1)
 
         # --- Configuration ---
-        if getattr(sys, 'frozen', False):
-            script_dir = os.path.dirname(sys.executable)
-        else:
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-        
-        self.batch_script_path = os.path.join(script_dir, "train_postshot.bat")
+        program_files = os.environ.get("PROGRAMFILES", "C:\\Program Files")
+        self.cli_path = os.path.join(program_files, "Jawset Postshot", "bin", "postshot-cli.exe")
+        self.is_test_mode = "--test" in sys.argv
         
         # --- Status Tracking ---
         self.folder_items = [] # Will store {'path': str, 'status': str, 'error': str|None, 'progress_text': str, 'log_history': list}
@@ -133,8 +130,9 @@ class BatchProcessorApp:
             self.log("No pending folders to process.")
             return
             
-        if not os.path.isfile(self.batch_script_path):
-            self.log(f"ERROR: '{os.path.basename(self.batch_script_path)}' not found.")
+        if not os.path.isfile(self.cli_path):
+            self.log(f"ERROR: '{os.path.basename(self.cli_path)}' not found at '{self.cli_path}'.")
+            messagebox.showerror("Executable Not Found", f"Could not find postshot-cli.exe at the expected location:\n\n{self.cli_path}")
             return
 
         self.is_processing = True
@@ -169,7 +167,28 @@ class BatchProcessorApp:
             completed_count = sum(1 for itm in self.folder_items if itm['status'] in ['done', 'error'])
             self.log(f"\n({completed_count + 1}/{total_items}) Processing: {os.path.basename(folder_path)}", task_index)
             
-            command = [self.batch_script_path, folder_path]
+            # --- Construct the command directly ---
+            input_images_folder = os.path.join(folder_path, "images")
+            project_file = os.path.join(folder_path, "project.shot")
+            output_ply = os.path.join(folder_path, "output.ply")
+
+            command = [
+                self.cli_path, "train",
+                "-i", input_images_folder,
+                "-p", "Splat ADC",
+                "--image-select", "all",
+                "--max-image-size", "0",
+                "--store-training-context",
+                "-o", project_file,
+                "--export-splat-ply", output_ply
+            ]
+
+            if self.is_test_mode:
+                # Insert '-s 1' right after '-p "Splat ADC"'
+                adc_index = command.index("Splat ADC")
+                command.insert(adc_index + 1, "1")
+                command.insert(adc_index + 1, "-s")
+            
             try:
                 process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
                 
