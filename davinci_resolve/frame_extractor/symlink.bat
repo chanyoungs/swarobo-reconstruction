@@ -2,18 +2,18 @@
 setlocal enableextensions
 
 :: =================================================================================
-:: DaVinci Resolve Script Symlinker
+:: DaVinci Resolve Script Folder Symlinker
 ::
-:: This script creates a symbolic link from 'frame_extractor.py' in this folder
-:: to the DaVinci Resolve Utility Scripts folder.
+:: This script creates a symbolic link from the 'Frame Extractor' folder in this
+:: directory to the DaVinci Resolve Utility Scripts folder.
 :: This allows you to edit the script here, and the changes will be live in Resolve.
 ::
 :: IMPORTANT: This script MUST be run as an Administrator.
 :: =================================================================================
 
 :: --- Configuration ---
-set "PYTHON_SCRIPT=Frame Extractor.py"
-set "RESOLVE_UTILITY_PATH=%APPDATA%\Blackmagic Design\DaVinci Resolve\Support\Fusion\Scripts\Utility\Custom"
+set "PYTHON_FOLDER=Frame Extractor"
+set "RESOLVE_UTILITY_PATH=%APPDATA%\Blackmagic Design\DaVinci Resolve\Support\Fusion\Scripts\Utility"
 
 :: --- Administrator Check ---
 net session >nul 2>&1
@@ -26,16 +26,16 @@ if %errorlevel% neq 0 (
 :: --- Script Logic ---
 cls
 echo ===================================================
-echo  DaVinci Resolve Script Symlinker
+echo  DaVinci Resolve Script Folder Symlinker
 echo ===================================================
 echo.
 
-echo [Step 1] Verifying that '%PYTHON_SCRIPT%' is present...
-if not exist "%~dp0%PYTHON_SCRIPT%" (
+echo [Step 1] Verifying that '%PYTHON_FOLDER%' is present...
+if not exist "%~dp0%PYTHON_FOLDER%\" (
     echo.
-    echo [ERROR] Could not find '%PYTHON_SCRIPT%'.
-    echo         Please make sure this batch file and the Python script
-    echo         are in the same folder.
+    echo [ERROR] Could not find '%PYTHON_FOLDER%'.
+    echo         Please make sure this batch file and the folder
+    echo         are in the same location.
     goto End
 )
 echo          Found it!
@@ -49,13 +49,14 @@ if not exist "%RESOLVE_UTILITY_PATH%\" (
 echo          Destination is ready.
 echo.
 
-set "LINK_PATH=%RESOLVE_UTILITY_PATH%\%PYTHON_SCRIPT%"
-set "TARGET_PATH=%~dp0%PYTHON_SCRIPT%"
+set "LINK_PATH=%RESOLVE_UTILITY_PATH%\%PYTHON_FOLDER%"
+set "TARGET_PATH=%~dp0%PYTHON_FOLDER%"
 
 echo [Step 3] Checking for existing files or links...
 if exist "%LINK_PATH%" (
-    echo          An existing file or link was found. Removing it first...
-    del "%LINK_PATH%"
+    echo          An existing file or folder was found. Removing it first...
+    rmdir "%LINK_PATH%" >nul 2>&1
+    del "%LINK_PATH%" >nul 2>&1
 )
 echo          Ready to create the link.
 echo.
@@ -65,7 +66,7 @@ echo          Link: %LINK_PATH%
 echo          Target: %TARGET_PATH%
 echo.
 
-mklink "%LINK_PATH%" "%TARGET_PATH%"
+mklink /D "%LINK_PATH%" "%TARGET_PATH%"
 
 if %errorlevel% equ 0 (
     echo ===================================================

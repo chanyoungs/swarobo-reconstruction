@@ -19,7 +19,6 @@ def sanitize_filename(name):
     s = re.sub(r'[.\[\]\s\(\)]', '_', name_no_ext)
     
     # Whitelist safe characters: letters, numbers, underscore, hyphen, and Korean Hangul syllables.
-    # Anything NOT in this set will be replaced with an underscore.
     s = re.sub(r'[^a-zA-Z0-9_-_\uac00-\ud7a3]', '_', s)
     
     # Collapse 2 or more consecutive underscores into a single underscore
@@ -37,16 +36,21 @@ def get_user_params():
 
     save_dir = filedialog.askdirectory(title="Select a Folder to Save Frames")
     if not save_dir:
-        return None, None
+        return None, None, None
 
     frame_step = simpledialog.askinteger("Frame Step", "Export one frame every:", initialvalue=24, minvalue=1, parent=root)
     if not frame_step:
-        return None, None
+        return None, None, None
 
-    return save_dir, frame_step
+    # Ask for output format
+    output_format = simpledialog.askstring("Output Format", "Enter output format (png, jpg, tif, dpx):", initialvalue="png", parent=root)
+    if not output_format:
+        return None, None, None
+
+    return save_dir, frame_step, output_format.lower()
 
 # --- Main extraction logic ---
-def export_frames(save_dir, frame_step):
+def export_frames(save_dir, frame_step, output_format):
     print("--- Starting Export ---")
     resolve = app.GetResolve()
     project = resolve.GetProjectManager().GetCurrentProject()
@@ -62,6 +66,9 @@ def export_frames(save_dir, frame_step):
         return
 
     print(f"Found {len(items)} clips to process...")
+
+    # Ensure color management is set to linear (optional: warn user to check settings)
+    print("Note: Ensure project color management is set to a linear color space (e.g., Linear or Rec.709 Linear) in DaVinci Resolve settings.")
 
     for item in items:
         media_pool_item = item.GetMediaPoolItem()
@@ -85,9 +92,10 @@ def export_frames(save_dir, frame_step):
 
             filename = os.path.join(
                 clip_dir,
-                f"{sanitized_name}_{padded_frame_number}.png"
+                f"{sanitized_name}_{padded_frame_number}.{output_format}"
             )
 
+            # Export frame as still (assumes EXR is supported by ExportCurrentFrameAsStill)
             success = project.ExportCurrentFrameAsStill(filename)
             
             if not success:
@@ -103,7 +111,7 @@ if __name__ == "__main__":
     except NameError:
         messagebox.showerror("Error", "This script must be run from DaVinci Resolve's 'Workspace > Scripts' menu.")
     else:
-        save_dir, frame_step = get_user_params()
-        if save_dir and frame_step:
-            export_frames(save_dir, frame_step)
+        save_dir, frame_step, output_format = get_user_params()
+        if save_dir and frame_step and output_format:
+            export_frames(save_dir, frame_step, output_format)
             print("\n--- Done! ---")
