@@ -27,6 +27,34 @@ def get_user_params():
         return None, None
     return save_dir, frame_step
 
+def confirm_color_space():
+    """
+    Asks the user to confirm they have set the correct linear color space.
+    Returns True if they confirm, False otherwise.
+    """
+    root = tk.Tk()
+    root.withdraw()
+    
+    confirmation = messagebox.askyesno(
+        title="Color Space Confirmation",
+        message="Have you set the project's 'Output Color Space' to a linear format (e.g., 'DaVinci Wide Gamut / Intermediate')?\n\nThis is required for a correct linear EXR export."
+    )
+    
+    if not confirmation:
+        instructions = (
+            "Action Canceled.\n\n"
+            "To set the correct color space:\n"
+            "1. Go to File -> Project Settings -> Color Management.\n"
+            "2. Set 'Color science' to 'DaVinci YRGB Color Managed'.\n"
+            "3. Set 'Timeline color space' to 'DaVinci Wide Gamut / Intermediate'.\n"
+            "4. IMPORTANT: Set 'Output color space' to the SAME value (e.g., 'DaVinci Wide Gamut / Intermediate').\n\n"
+            "Please apply these settings and run the script again."
+        )
+        messagebox.showinfo("Instructions", instructions)
+        return False
+        
+    return True
+
 def export_frames(save_dir, frame_step):
     print("--- Starting Export ---")
     resolve = app.GetResolve()
@@ -60,7 +88,6 @@ def export_frames(save_dir, frame_step):
         start_frame = item.GetStart()
         end_frame = item.GetEnd()
 
-        # --- CHANGE 1: Initialize a counter for the output filename, starting at 1 ---
         output_frame_counter = 1
 
         for frame in range(start_frame, end_frame, frame_step):
@@ -90,7 +117,6 @@ def export_frames(save_dir, frame_step):
                     
                     source_filepath = max(list_of_files, key=os.path.getctime)
                     
-                    # --- CHANGE 2: Use the new counter for the destination filename ---
                     dest_filename = f"{sanitized_name}_{output_frame_counter:04d}.exr"
                     dest_filepath = os.path.join(clip_dir, dest_filename)
 
@@ -104,7 +130,6 @@ def export_frames(save_dir, frame_step):
             
             project.DeleteRenderJob(jobId)
             
-            # --- CHANGE 3: Increment the counter by the frame_step for the next file ---
             output_frame_counter += frame_step
 
     messagebox.showinfo("Finished", "Frame extraction is complete!")
@@ -116,7 +141,14 @@ if __name__ == "__main__":
     except NameError:
         messagebox.showerror("Error", "This script must be run from DaVinci Resolve's 'Workspace > Scripts' menu.")
     else:
-        save_dir, frame_step = get_user_params()
-        if save_dir and frame_step:
-            export_frames(save_dir, frame_step)
-            print("\n--- Done! ---")
+        # --- NEW LOGIC IS HERE ---
+        # First, confirm the color space settings with the user.
+        if confirm_color_space():
+            # If they click "Yes", then get the other parameters and run the export.
+            save_dir, frame_step = get_user_params()
+            if save_dir and frame_step:
+                export_frames(save_dir, frame_step)
+                print("\n--- Done! ---")
+        else:
+            # If they click "No", the script will have shown instructions and will now end.
+            print("--- Script Canceled by User (Color Space Not Set) ---")

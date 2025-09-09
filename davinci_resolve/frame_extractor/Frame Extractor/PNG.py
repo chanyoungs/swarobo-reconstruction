@@ -18,8 +18,9 @@ def sanitize_filename(name):
     # Replace specific problematic characters (including round braces) with underscores
     s = re.sub(r'[.\[\]\s\(\)]', '_', name_no_ext)
     
-    # Whitelist safe characters: letters, numbers, underscore, hyphen, and Korean Hangul syllables.
-    s = re.sub(r'[^a-zA-Z0-9_-_\uac00-\ud7a3]', '_', s)
+    # --- FIX IS HERE ---
+    # Whitelist safe characters. Hyphen '-' is moved to the start to be treated literally.
+    s = re.sub(r'[^-a-zA-Z0-9_\uac00-\ud7a3]', '_', s)
     
     # Collapse 2 or more consecutive underscores into a single underscore
     s = re.sub(r'__+', '_', s)
