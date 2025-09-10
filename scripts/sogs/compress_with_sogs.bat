@@ -14,7 +14,7 @@ if "%~1"=="" goto end
 set "ply_path=%~1"
 
 :: Remove extension and append _sogs for output directory
-set "output_dir=%~dpn1_sogs2"
+set "output_dir=%~dpn1_sogs_v2"
 
 :: Create the output directory if it does not exist
 if not exist "%output_dir%" (
