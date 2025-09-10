@@ -2,6 +2,8 @@
 setlocal
 
 if "%~1"=="" (
+    echo No input files provided.
+    echo Usage: %0 file1.ply file2.ply ...
     exit /b 1
 )
 
@@ -12,15 +14,24 @@ if "%~1"=="" goto end
 set "ply_path=%~1"
 
 :: Remove extension and append _sogs for output directory
-set "output_dir=%~dpn1_sogs"
+set "output_dir=%~dpn1_sogs2"
+
+:: Create the output directory if it does not exist
+if not exist "%output_dir%" (
+    echo Creating directory: %output_dir%
+    mkdir "%output_dir%"
+)
 
 :: Run sogs-compress
-"C:\Users\chans\anaconda3\envs\torch128\Scripts\sogs-compress.exe" --ply "%ply_path%" --output-dir "%output_dir%"
+echo Processing %ply_path%...
+splat-transform "%ply_path%" "%output_dir%\meta.json"
 
 :: Shift to next argument
 shift
 goto loop
 
 :end
+echo.
+echo All files processed.
 endlocal
 pause
